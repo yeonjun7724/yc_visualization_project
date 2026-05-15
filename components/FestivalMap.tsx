@@ -338,7 +338,7 @@ export default function FestivalMap() {
         </div>
 
         {/* 사이드 패널 */}
-        <div style={{ background:"#111620",border:"1px solid rgba(255,255,255,0.07)",borderLeft:"none",borderRadius:"0 12px 12px 0",padding:12,display:"flex",flexDirection:"column",gap:8,overflowY:"auto",height:600,scrollbarWidth:"thin" }}>
+        <div style={{ background:"#111620",border:"1px solid rgba(255,255,255,0.07)",borderLeft:"none",borderRadius:"0 12px 12px 0",padding:12,display:"flex",flexDirection:"column",gap:8,overflowY:"scroll",height:600,scrollbarWidth:"thin",scrollbarColor:"rgba(255,255,255,0.2) transparent" }} className="side-panel">
 
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:5 }}>
             {[{v:"4,833",l:"영천시 상가",c:"#7aadff"},{v:"40",l:"읍면동 수",c:"rgba(255,255,255,0.7)"},{v:"0개",l:"보현산 1km",c:"#e74c3c"},{v:"1,583",l:"한약 1km",c:"#2ecc71"}].map(({v,l,c})=>(
