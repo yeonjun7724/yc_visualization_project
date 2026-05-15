@@ -356,7 +356,7 @@ export default function FestivalMap() {
                 {icon:"✅",t:"방문객 유입 효과 확인",d:"+9.7%",c:"#2ecc71"},
                 {icon:"⚠️",t:"체류 전환 실패",d:"1,075 < 1,478분",c:"#e74c3c"},
                 {icon:"📊",t:"소비 불균등 낙수",d:"쇼핑44%·숙박1.4%",c:"#f0b429"},
-                {icon:"🗺️",t:"공간 낙수 구조 차이",d:"보현산 0 vs 한약 1,583",c:"#7c3aed"},
+                {icon:"🗺️",t:"공간 낙수 구조 차이",d:"보현산 12 vs 와인 1,896",c:"#7c3aed"},
               ].map(({icon,t,d,c})=>(
                 <div key={t} style={{ display:"flex",gap:5,marginBottom:4,paddingBottom:4,borderBottom:"1px solid rgba(255,255,255,0.04)",alignItems:"center" }}>
                   <span style={{ fontSize:14,flexShrink:0 }}>{icon}</span>
