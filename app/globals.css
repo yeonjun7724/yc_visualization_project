@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0a0e1a;
+  --ink2: #1a2035;
+  --surface: #111620;
+  --border: rgba(255,255,255,0.08);
+  --accent: #d64f2a;
+  --blue: #1a56db;
+  --green: #0ea86e;
+  --yellow: #f0b429;
+  --purple: #7c3aed;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Noto Sans KR', sans-serif;
+  --display: 'Syne', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--ink); color: white; overflow-x: hidden; }
+.mono { font-family: var(--mono); }
+.display { font-family: var(--display); }
+.chip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--ink2); border-radius: 3px; }
+
+/* Leaflet 커스텀 */
+.leaflet-container { background: #0d1117 !important; font-family: 'Noto Sans KR', sans-serif; }
+.leaflet-control-zoom a {
+  background: rgba(13,17,23,0.9) !important;
+  color: rgba(255,255,255,0.7) !important;
+  border-color: rgba(255,255,255,0.15) !important;
+}
+.leaflet-control-zoom a:hover { background: rgba(26,86,219,0.35) !important; }
+.leaflet-control-attribution {
+  background: rgba(13,17,23,0.65) !important;
+  color: rgba(255,255,255,0.28) !important;
+  font-size: 9px !important;
+}
+.leaflet-control-attribution a { color: rgba(255,255,255,0.38) !important; }
+.leaflet-popup-content-wrapper {
+  border-radius: 10px !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35) !important;
+}
+.leaflet-tooltip {
+  background: rgba(13,17,23,0.95) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: white !important;
+  font-size: 12px !important;
+  border-radius: 6px !important;
+  padding: 5px 10px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+}
+.leaflet-tooltip-top::before { border-top-color: rgba(255,255,255,0.12) !important; }
+.leaflet-tooltip-center::before { display: none; }
