@@ -298,10 +298,10 @@ export default function FestivalMap() {
         </p>
       </div>
 
-      <div style={{ maxWidth:1400,margin:"0 auto",padding:"0 24px 0",display:"grid",gridTemplateColumns:"1fr 270px",gap:0 }}>
+      <div style={{ maxWidth:1400,margin:"0 auto",padding:"0 24px 0",display:"grid",gridTemplateColumns:"1fr 270px",gap:0,alignItems:"stretch" }}>
 
         {/* 지도 */}
-        <div style={{ position:"relative",borderRadius:"12px 0 0 12px",overflow:"hidden",height:560 }}>
+        <div style={{ position:"relative",borderRadius:"12px 0 0 12px",overflow:"hidden",height:600 }}>
           {/* 탭 */}
           <div style={{ position:"absolute",top:10,left:10,zIndex:1000,display:"flex",gap:4,flexWrap:"wrap" }}>
             {TABS.map(({ v, label }) => (
@@ -338,11 +338,11 @@ export default function FestivalMap() {
         </div>
 
         {/* 사이드 패널 */}
-        <div style={{ background:"#111620",border:"1px solid rgba(255,255,255,0.07)",borderLeft:"none",borderRadius:"0 12px 12px 0",padding:12,display:"flex",flexDirection:"column",gap:10,overflowY:"auto",height:560 }}>
+        <div style={{ background:"#111620",border:"1px solid rgba(255,255,255,0.07)",borderLeft:"none",borderRadius:"0 12px 12px 0",padding:12,display:"flex",flexDirection:"column",gap:8,overflowY:"auto",height:600,scrollbarWidth:"thin" }}>
 
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:6 }}>
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:5 }}>
             {[{v:"4,833",l:"영천시 상가",c:"#7aadff"},{v:"40",l:"읍면동 수",c:"rgba(255,255,255,0.7)"},{v:"0개",l:"보현산 1km",c:"#e74c3c"},{v:"1,583",l:"한약 1km",c:"#2ecc71"}].map(({v,l,c})=>(
-              <div key={l} style={{ background:"rgba(255,255,255,0.04)",borderRadius:8,padding:"8px 10px",textAlign:"center" }}>
+              <div key={l} style={{ background:"rgba(255,255,255,0.04)",borderRadius:8,padding:"6px 8px",textAlign:"center" }}>
                 <div className="mono" style={{ fontSize:16,fontWeight:700,color:c }}>{v}</div>
                 <div style={{ fontSize:10,color:"rgba(255,255,255,0.38)",marginTop:2 }}>{l}</div>
               </div>
@@ -353,16 +353,16 @@ export default function FestivalMap() {
             <div className="mono" style={{ padding:"6px 11px",background:"rgba(255,255,255,0.04)",fontSize:9,color:"rgba(255,255,255,0.38)",letterSpacing:".06em",borderBottom:"1px solid rgba(255,255,255,0.07)" }}>분석 결론</div>
             <div style={{ padding:10 }}>
               {[
-                {icon:"✅",t:"방문객 유입 효과 확인",d:"+9.7% (2022→2024)",c:"#2ecc71"},
-                {icon:"⚠️",t:"체류 전환 실패",d:"축제 달 1,075분 < 비축제 1,478분",c:"#e74c3c"},
-                {icon:"📊",t:"소비 불균등 낙수",d:"쇼핑 44.4% · 숙박 1.4%",c:"#f0b429"},
-                {icon:"🗺️",t:"공간 낙수 구조 차이",d:"보현산 0개 vs 한약 1,583개",c:"#7c3aed"},
+                {icon:"✅",t:"방문객 유입 효과 확인",d:"+9.7%",c:"#2ecc71"},
+                {icon:"⚠️",t:"체류 전환 실패",d:"1,075 < 1,478분",c:"#e74c3c"},
+                {icon:"📊",t:"소비 불균등 낙수",d:"쇼핑44%·숙박1.4%",c:"#f0b429"},
+                {icon:"🗺️",t:"공간 낙수 구조 차이",d:"보현산 0 vs 한약 1,583",c:"#7c3aed"},
               ].map(({icon,t,d,c})=>(
-                <div key={t} style={{ display:"flex",gap:7,marginBottom:7,paddingBottom:7,borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                <div key={t} style={{ display:"flex",gap:5,marginBottom:4,paddingBottom:4,borderBottom:"1px solid rgba(255,255,255,0.04)",alignItems:"center" }}>
                   <span style={{ fontSize:14,flexShrink:0 }}>{icon}</span>
                   <div>
-                    <div style={{ fontSize:11,fontWeight:700,color:"white",marginBottom:1 }}>{t}</div>
-                    <div style={{ fontSize:10,color:"rgba(255,255,255,0.4)" }}>{d}</div>
+                    <div style={{ fontSize:10,fontWeight:700,color:"white" }}>{t}</div>
+                    <div style={{ fontSize:9,color:"rgba(255,255,255,0.38)" }}>{d}</div>
                   </div>
                 </div>
               ))}
@@ -375,12 +375,12 @@ export default function FestivalMap() {
               <div style={{ padding:8,display:"flex",flexDirection:"column",gap:5 }}>
                 {appData.buffer.map((venue, i) => (
                   <div key={venue.festival} onClick={() => flyToVenue(i)} style={{
-                    padding:"7px 9px",borderRadius:7,cursor:"pointer",transition:"all .15s",
+                    padding:"5px 8px",borderRadius:7,cursor:"pointer",transition:"all .15s",
                     border:`1px solid ${selVenue===i?`rgba(${venue.color[0]},${venue.color[1]},${venue.color[2]},0.6)`:"rgba(255,255,255,0.06)"}`,
                     background:selVenue===i?`rgba(${venue.color[0]},${venue.color[1]},${venue.color[2]},0.1)`:"rgba(255,255,255,0.02)",
                   }}>
                     <div style={{ fontSize:11,fontWeight:700,color:"white",marginBottom:3 }}>{VENUE_ICONS[i]} {venue.festival}</div>
-                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.38)",marginBottom:3 }}>
+                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.38)",marginBottom:2 }}>
                       <span>1km <b style={{color:"white"}}>{venue.km1.toLocaleString()}</b></span>
                       <span>3km <b style={{color:"white"}}>{venue.km3.toLocaleString()}</b></span>
                       <span>5km <b style={{color:"white"}}>{venue.km5.toLocaleString()}</b></span>
@@ -388,7 +388,7 @@ export default function FestivalMap() {
                     <div style={{ height:3,background:"rgba(255,255,255,0.06)",borderRadius:2 }}>
                       <div style={{ height:"100%",width:`${venue.km1/1583*100}%`,background:`rgb(${venue.color[0]},${venue.color[1]},${venue.color[2]})`,borderRadius:2 }}/>
                     </div>
-                    <div style={{ fontSize:9,color:`rgba(${venue.color[0]},${venue.color[1]},${venue.color[2]},0.8)`,marginTop:3 }}>{venue.note}</div>
+                    <div style={{ fontSize:9,color:`rgba(${venue.color[0]},${venue.color[1]},${venue.color[2]},0.8)`,marginTop:2 }}>{venue.note}</div>
                   </div>
                 ))}
               </div>
@@ -399,10 +399,10 @@ export default function FestivalMap() {
             <div className="mono" style={{ padding:"6px 11px",background:"rgba(255,255,255,0.04)",fontSize:9,color:"rgba(255,255,255,0.38)",letterSpacing:".06em",borderBottom:"1px solid rgba(255,255,255,0.07)" }}>4대 정책 제언</div>
             <div style={{ padding:10 }}>
               {[{n:"01",t:"보현산 연계 상권 개발",c:"#7c3aed",tag:"공간"},{n:"02",t:"체류형 관광 인프라 강화",c:"#e74c3c",tag:"체류"},{n:"03",t:"광역 유입 확대 전략",c:"#2ecc71",tag:"마케팅"},{n:"04",t:"데이터 상시 모니터링",c:"#1a56db",tag:"거버넌스"}].map(({n,t,c,tag})=>(
-                <div key={n} style={{ display:"flex",alignItems:"center",gap:7,marginBottom:6 }}>
-                  <span className="mono" style={{ fontSize:9,color:"rgba(255,255,255,0.25)",flexShrink:0 }}>{n}</span>
-                  <div style={{ flex:1,fontSize:11,color:"white" }}>{t}</div>
-                  <span style={{ fontSize:9,padding:"1px 6px",borderRadius:3,background:`${c}1f`,color:c,flexShrink:0 }}>{tag}</span>
+                <div key={n} style={{ display:"flex",alignItems:"center",gap:6,marginBottom:4 }}>
+                  <span className="mono" style={{ fontSize:9,color:"rgba(255,255,255,0.22)",flexShrink:0 }}>{n}</span>
+                  <div style={{ flex:1,fontSize:10,color:"white" }}>{t}</div>
+                  <span style={{ fontSize:9,padding:"1px 5px",borderRadius:3,background:`${c}1f`,color:c,flexShrink:0 }}>{tag}</span>
                 </div>
               ))}
             </div>
