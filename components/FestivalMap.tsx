@@ -298,10 +298,10 @@ export default function FestivalMap() {
         </p>
       </div>
 
-      <div style={{ maxWidth:1400,margin:"0 auto",padding:"0 24px 0",display:"grid",gridTemplateColumns:"1fr 270px",gap:0,alignItems:"stretch" }}>
+      <div style={{ maxWidth:1400,margin:"0 auto",padding:"0 24px 0",display:"grid",gridTemplateColumns:"1fr 270px",gap:0 }}>
 
         {/* 지도 */}
-        <div style={{ position:"relative",borderRadius:"12px 0 0 12px",overflow:"hidden",height:600 }}>
+        <div style={{ position:"relative",borderRadius:"12px 0 0 12px",overflow:"hidden",height:700 }}>
           {/* 탭 */}
           <div style={{ position:"absolute",top:10,left:10,zIndex:1000,display:"flex",gap:4,flexWrap:"wrap" }}>
             {TABS.map(({ v, label }) => (
@@ -338,7 +338,7 @@ export default function FestivalMap() {
         </div>
 
         {/* 사이드 패널 */}
-        <div style={{ background:"#111620",border:"1px solid rgba(255,255,255,0.07)",borderLeft:"none",borderRadius:"0 12px 12px 0",padding:12,display:"flex",flexDirection:"column",gap:8,overflowY:"scroll",height:600,scrollbarWidth:"thin",scrollbarColor:"rgba(255,255,255,0.2) transparent" }} className="side-panel">
+        <div style={{ background:"#111620",border:"1px solid rgba(255,255,255,0.07)",borderLeft:"none",borderRadius:"0 12px 12px 0",padding:12,display:"flex",flexDirection:"column",gap:8,overflowY:"auto",maxHeight:700,scrollbarWidth:"thin",scrollbarColor:"rgba(255,255,255,0.2) transparent" }} className="side-panel">
 
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:5 }}>
             {[{v:"4,833",l:"영천시 상가",c:"#7aadff"},{v:"40",l:"읍면동 수",c:"rgba(255,255,255,0.7)"},{v:"0개",l:"보현산 1km",c:"#e74c3c"},{v:"1,583",l:"한약 1km",c:"#2ecc71"}].map(({v,l,c})=>(

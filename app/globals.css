@@ -68,7 +68,7 @@ body { font-family: var(--sans); background: var(--ink); color: white; overflow-
 .leaflet-tooltip-center::before { display: none; }
 
 /* 사이드 패널 스크롤바 */
-.side-panel::-webkit-scrollbar { width: 4px; }
-.side-panel::-webkit-scrollbar-track { background: transparent; }
-.side-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
-.side-panel::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+.side-panel::-webkit-scrollbar { width: 5px; }
+.side-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 3px; }
+.side-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 3px; }
+.side-panel::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.45); }
