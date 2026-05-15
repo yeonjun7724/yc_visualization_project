@@ -173,106 +173,144 @@ function RadarChart({data}:{data:RadarRow[]}) {
 function SankeyChart({data}:{data:SankeyData}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tooltip, setTooltip] = useState<{x:number;y:number;text:string}|null>(null);
-  const nodeRectsRef = useRef<{x:number;y:number;w:number;h:number;label:string;val:number}[]>([]);
+  const nodeRectsRef = useRef<{x:number;y:number;w:number;h:number;label:string;val:number;layer:number}[]>([]);
 
   const LAYER_COLORS = ['#3498db','#2ecc71','#e74c3c'];
-  const NODE_W = 13;
+  const NODE_W = 16;
+  const GAP = 6;
 
   useEffect(()=>{
     try {
     const canvas = canvasRef.current; if(!canvas) return;
     const ctx = canvas.getContext('2d')!;
     const W = canvas.width, H = canvas.height;
-    const PAD_L=72, PAD_R=88, PAD_T=28, PAD_B=22;
-    const drawW = W-PAD_L-PAD_R, drawH = H-PAD_T-PAD_B;
+    const PAD_L=82, PAD_R=96, PAD_T=32, PAD_B=20;
+    const drawW = W-PAD_L-PAD_R;
+    const drawH = H-PAD_T-PAD_B;
     ctx.clearRect(0,0,W,H);
 
     if (!data?.layer_counts?.length || !data?.nodes?.length ||
         !data?.sources?.length || !data?.targets?.length || !data?.values?.length) return;
-    const {layer_counts} = data;
-    const layerX = layer_counts.map((_,i)=>PAD_L + drawW*i/(layer_counts.length-1));
-    const nodeFlow: number[] = new Array(data.nodes.length).fill(0);
-    // source 기반 flow
-    let nodeIdx = 0;
-    layer_counts.forEach((cnt)=>{
-      for(let j=0;j<cnt;j++){
-        const ni = nodeIdx+j;
-        const sFlow = data.values.filter((_,vi)=>data.sources[vi]===ni).reduce((a,v)=>a+v,0);
-        const tFlow = data.values.filter((_,vi)=>data.targets[vi]===ni).reduce((a,v)=>a+v,0);
+
+    const {layer_counts, nodes, sources, targets, values, node_layers, layer_labels, link_colors} = data;
+    const nLayers = layer_counts.length;
+
+    // 레이어별 x 위치
+    const layerX = layer_counts.map((_,i)=> PAD_L + drawW*i/(nLayers-1));
+
+    // nodeFlow 계산: 각 노드에 드나드는 flow 합계
+    const nodeFlow = new Array(nodes.length).fill(0);
+    let base = 0;
+    layer_counts.forEach((cnt, li) => {
+      for(let j=0; j<cnt; j++){
+        const ni = base+j;
+        const sFlow = values.filter((_,vi)=>sources[vi]===ni).reduce((a,v)=>a+v,0);
+        const tFlow = values.filter((_,vi)=>targets[vi]===ni).reduce((a,v)=>a+v,0);
         nodeFlow[ni] = Math.max(sFlow, tFlow);
       }
-      nodeIdx+=cnt;
+      base += cnt;
     });
 
+    // 각 레이어별 노드 높이 배치
     const nodeRects: typeof nodeRectsRef.current = [];
-    nodeIdx = 0;
-    layer_counts.forEach((cnt,li)=>{
-      const x = layerX[li] - NODE_W/2;
-      const GAP = 7, totalH = drawH*0.9;
-      const layerTotal = Array.from({length:cnt},(_,j)=>nodeFlow[nodeIdx+j]).reduce((a,v)=>a+v,0);
-      let curY = PAD_T + drawH*0.05;
-      for(let j=0;j<cnt;j++){
-        const ni = nodeIdx+j;
-        const nh = Math.max(5, (nodeFlow[ni]/layerTotal)*(totalH - GAP*(cnt-1)));
-        nodeRects.push({x,y:curY,w:NODE_W,h:nh,label:data.nodes[ni],val:nodeFlow[ni]});
+    base = 0;
+    layer_counts.forEach((cnt, li) => {
+      const layerNodes = Array.from({length:cnt},(_,j)=>nodeFlow[base+j]);
+      const layerTotal = layerNodes.reduce((a,v)=>a+v,0) || 1;
+      const usableH = drawH - GAP*(cnt-1);
+      let curY = PAD_T;
+      for(let j=0; j<cnt; j++){
+        const ni = base+j;
+        const nh = Math.max(4, (nodeFlow[ni]/layerTotal)*usableH);
+        nodeRects.push({
+          x: layerX[li]-NODE_W/2,
+          y: curY,
+          w: NODE_W,
+          h: nh,
+          label: nodes[ni],
+          val: nodeFlow[ni],
+          layer: li,
+        });
         curY += nh + GAP;
-        nodeIdx++;
       }
+      base += cnt;
     });
     nodeRectsRef.current = nodeRects;
 
-    const srcOff = new Array(data.nodes.length).fill(0);
-    const tgtOff = new Array(data.nodes.length).fill(0);
-    const linkOrder = data.sources.map((_,i)=>i).sort((a,b)=>data.sources[a]-data.sources[b]);
+    // 링크 그리기
+    const srcOff = new Array(nodes.length).fill(0);
+    const tgtOff = new Array(nodes.length).fill(0);
+    const linkOrder = sources.map((_,i)=>i).sort((a,b)=>sources[a]-sources[b]);
 
     linkOrder.forEach(li=>{
-      const s=data.sources[li],t=data.targets[li],v=data.values[li];
-      if(v<=0)return;
-      const sR=nodeRects[s],tR=nodeRects[t];
-      if(!sR||!tR||nodeFlow[s]===0||nodeFlow[t]===0)return;
-      const sH=sR.h*(v/nodeFlow[s]),tH=tR.h*(v/nodeFlow[t]);
-      const sy=sR.y+srcOff[s],ty=tR.y+tgtOff[t];
+      const s=sources[li], t=targets[li], v=values[li];
+      if(v<=0) return;
+      const sR=nodeRects[s], tR=nodeRects[t];
+      if(!sR||!tR||nodeFlow[s]===0||nodeFlow[t]===0) return;
+      const sH = sR.h*(v/nodeFlow[s]);
+      const tH = tR.h*(v/nodeFlow[t]);
+      const sy = sR.y+srcOff[s];
+      const ty = tR.y+tgtOff[t];
       srcOff[s]+=sH; tgtOff[t]+=tH;
-      const x1=sR.x+NODE_W,x2=tR.x,cpx=(x1+x2)/2;
+      const x1=sR.x+NODE_W, x2=tR.x;
+      const cpx=(x1+x2)/2;
       ctx.beginPath();
-      ctx.moveTo(x1,sy);ctx.bezierCurveTo(cpx,sy,cpx,ty,x2,ty);
-      ctx.lineTo(x2,ty+tH);ctx.bezierCurveTo(cpx,ty+tH,cpx,sy+sH,x1,sy+sH);
+      ctx.moveTo(x1,sy);
+      ctx.bezierCurveTo(cpx,sy,cpx,ty,x2,ty);
+      ctx.lineTo(x2,ty+tH);
+      ctx.bezierCurveTo(cpx,ty+tH,cpx,sy+sH,x1,sy+sH);
       ctx.closePath();
-      ctx.fillStyle=data.link_colors[li]||'rgba(150,150,150,0.2)'; ctx.fill();
+      ctx.fillStyle = link_colors[li]||'rgba(150,150,150,0.2)';
+      ctx.fill();
     });
 
-    nodeRects.forEach((nr,i)=>{
-      const li=data.node_layers[i];
-      ctx.fillStyle=LAYER_COLORS[li];
-      ctx.fillRect(nr.x,nr.y,nr.w,nr.h);
-      ctx.fillStyle='rgba(255,255,255,0.75)';
-      ctx.font='9.5px Noto Sans KR,sans-serif'; ctx.textBaseline='middle';
-      const lbl = nr.label.length>7?nr.label.slice(0,7):nr.label;
-      if(li===0){ ctx.textAlign='right'; ctx.fillText(lbl,nr.x-4,nr.y+nr.h/2); }
-      else if(li===layer_counts.length-1){ ctx.textAlign='left'; ctx.fillText(lbl,nr.x+NODE_W+4,nr.y+nr.h/2); }
-      else { ctx.textAlign='center'; if(nr.h>13) ctx.fillText(lbl,nr.x+NODE_W/2,nr.y+nr.h/2); }
+    // 노드 그리기
+    nodeRects.forEach((nr)=>{
+      const li = nr.layer;
+      ctx.fillStyle = LAYER_COLORS[li]||'#888';
+      ctx.fillRect(nr.x, nr.y, nr.w, nr.h);
+
+      // 레이블 (왼쪽: 레이어0, 오른쪽: 마지막 레이어, 중간: 위)
+      ctx.fillStyle='rgba(255,255,255,0.82)';
+      ctx.font='9.5px Noto Sans KR,sans-serif';
+      ctx.textBaseline='middle';
+      const lbl = nr.label.length>8 ? nr.label.slice(0,8) : nr.label;
+      if(li===0){
+        ctx.textAlign='right';
+        ctx.fillText(lbl, nr.x-5, nr.y+nr.h/2);
+      } else if(li===nLayers-1){
+        ctx.textAlign='left';
+        ctx.fillText(lbl, nr.x+NODE_W+5, nr.y+nr.h/2);
+      } else {
+        ctx.textAlign='center';
+        if(nr.h>12) ctx.fillText(lbl, nr.x+NODE_W/2, nr.y+nr.h/2);
+      }
     });
 
-    data.layer_labels.forEach((lbl,li)=>{
-      ctx.fillStyle=LAYER_COLORS[li];
-      ctx.font='bold 10px Noto Sans KR,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top';
-      ctx.fillText(lbl,layerX[li],5);
+    // 레이어 헤더
+    layer_labels.forEach((lbl,li)=>{
+      ctx.fillStyle=LAYER_COLORS[li]||'#888';
+      ctx.font='bold 10px Noto Sans KR,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText(lbl, layerX[li], 6);
     });
-      } catch(e) { console.error('SankeyChart render error:', e); }
+
+    } catch(e){ console.error('SankeyChart error:', e); }
   },[data]);
 
   const onMouseMove=(e:React.MouseEvent<HTMLCanvasElement>)=>{
     const canvas=canvasRef.current; if(!canvas)return;
     const rect=canvas.getBoundingClientRect();
-    const sx=canvas.width/rect.width,sy=canvas.height/rect.height;
-    const mx=(e.clientX-rect.left)*sx,my=(e.clientY-rect.top)*sy;
+    const sx=canvas.width/rect.width, sy=canvas.height/rect.height;
+    const mx=(e.clientX-rect.left)*sx, my=(e.clientY-rect.top)*sy;
     const found=nodeRectsRef.current.find(nr=>mx>=nr.x&&mx<=nr.x+nr.w&&my>=nr.y&&my<=nr.y+nr.h);
     setTooltip(found?{x:e.clientX-rect.left,y:e.clientY-rect.top,text:`${found.label}: ${found.val}명`}:null);
   };
 
-  return (
+  return(
     <div style={{position:'relative'}}>
-      <canvas ref={canvasRef} width={820} height={290} style={{width:'100%',display:'block'}}
+      <canvas ref={canvasRef} width={860} height={300}
+        style={{width:'100%',display:'block'}}
         onMouseMove={onMouseMove} onMouseLeave={()=>setTooltip(null)}/>
       {tooltip&&(
         <div style={{position:'absolute',left:tooltip.x+10,top:tooltip.y-10,background:'rgba(13,17,23,0.95)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:5,padding:'4px 9px',fontSize:11,color:'white',pointerEvents:'none',whiteSpace:'nowrap'}}>
@@ -285,6 +323,7 @@ function SankeyChart({data}:{data:SankeyData}) {
     </div>
   );
 }
+
 
 /* ── 메인 ── */
 export default function EDAPanel() {
@@ -321,12 +360,14 @@ export default function EDAPanel() {
             </p>
           </div>
           <div style={{display:'flex',gap:5}}>
-            {[{v:0,l:'전체 평균'},{v:2022,l:'2022년'},{v:2023,l:'2023년'},{v:2024,l:'2024년'}].map(({v,l})=>(
+            {[{v:0,l:'전체 평균',ac:'#7aadff',bc:'rgba(26,86,219,0.2)',bo:'rgba(26,86,219,0.7)'},{v:2022,l:'2022년',ac:'#95a5a6',bc:'rgba(149,165,166,0.15)',bo:'rgba(149,165,166,0.5)'},{v:2023,l:'2023년',ac:'#2ecc71',bc:'rgba(46,204,113,0.15)',bo:'rgba(46,204,113,0.5)'},{v:2024,l:'2024년',ac:'#e74c3c',bc:'rgba(231,76,60,0.15)',bo:'rgba(231,76,60,0.5)'}].map(({v,l,ac,bc,bo})=>(
               <button key={v} onClick={()=>setSelYear(v)} style={{
                 fontSize:11,padding:'4px 11px',borderRadius:5,cursor:'pointer',
-                border:selYear===v?'1px solid rgba(26,86,219,0.7)':'1px solid rgba(255,255,255,0.12)',
-                background:selYear===v?'rgba(26,86,219,0.2)':'transparent',
-                color:selYear===v?'#7aadff':'rgba(255,255,255,0.5)',transition:'all .15s',
+                border:selYear===v?`1px solid ${bo}`:'1px solid rgba(255,255,255,0.12)',
+                background:selYear===v?bc:'transparent',
+                color:selYear===v?ac:'rgba(255,255,255,0.45)',
+                fontWeight:selYear===v?700:400,
+                transition:'all .15s',
               }}>{l}</button>
             ))}
           </div>
@@ -336,13 +377,13 @@ export default function EDAPanel() {
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:14,marginBottom:14}}>
           <ChartCard title="방문자수 & 숙박률" mono="EDA 1" sub="출처: 한국관광데이터랩 실측">
             {data.visitors.map(v=>(
-              <div key={v.year} style={{marginBottom:10}}>
+              <div key={v.year} style={{marginBottom:10,opacity:selYear===0||selYear===v.year?1:0.28,transition:'opacity .2s'}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:3}}>
-                  <span style={{color:'rgba(255,255,255,0.5)'}}>{v.year}년</span>
+                  <span style={{color:selYear===v.year?'white':'rgba(255,255,255,0.5)',fontWeight:selYear===v.year?700:400}}>{v.year}년</span>
                   <span className="mono" style={{color:'rgba(255,255,255,0.85)'}}>{v.visitors.toLocaleString()}명</span>
                 </div>
                 <div style={{height:7,background:'rgba(255,255,255,0.06)',borderRadius:4}}>
-                  <div style={{height:'100%',width:`${v.visitors/11568378*100}%`,background:v.year===2022?'#95a5a6':v.year===2023?'#2ecc71':'#e74c3c',borderRadius:4}}/>
+                  <div style={{height:'100%',width:`${v.visitors/11568378*100}%`,background:v.year===2022?'#95a5a6':v.year===2023?'#2ecc71':'#e74c3c',borderRadius:4,boxShadow:selYear===v.year?'0 0 8px currentColor':undefined}}/>
                 </div>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:10,marginTop:2}}>
                   <span style={{color:'rgba(255,255,255,0.3)'}}>숙박률</span>
@@ -356,7 +397,7 @@ export default function EDAPanel() {
             </div>
           </ChartCard>
 
-          <ChartCard title="체류시간 — 역설적 결과" mono="EDA 2" sub="출처: 한국관광데이터랩 실측">
+          <ChartCard title="체류시간 — 역설적 결과" mono="EDA 2" sub="출처: 한국관광데이터랩 실측 · 연도 무관 (축제별 비교)">
             {data.stay.map(s=>(
               <div key={s.type} style={{marginBottom:10}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:3}}>
@@ -374,7 +415,7 @@ export default function EDAPanel() {
             </div>
           </ChartCard>
 
-          <ChartCard title="축제장 반경별 상가 수" mono="BUFFER" sub="출처: 소상공인진흥공단 2023Q2 · geopandas 공간 분석">
+          <ChartCard title="축제장 반경별 상가 수" mono="BUFFER" sub="출처: 소상공인진흥공단 2023Q2 · 연도 무관">
             <div style={{overflowX:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
                 <thead>
@@ -430,7 +471,7 @@ export default function EDAPanel() {
             </div>
           </ChartCard>
 
-          <ChartCard title="주요 유입 출발지 Top10" mono="EDA 4" sub="출처: 한국관광데이터랩 유입출발지 분석 결과">
+          <ChartCard title="주요 유입 출발지 Top10" mono="EDA 4" sub="출처: 한국관광데이터랩 · 3개년 평균 기준 (연도 무관)">
             {data.inflow.slice(0,8).map((d,i)=>(
               <div key={d.region} style={{marginBottom:5}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:10,marginBottom:1}}>
